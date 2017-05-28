@@ -1,0 +1,8 @@
+{
+  "name": "communities-core-services",
+  "version": "0.0.1",
+  "description": "communities web service backend",
+  "dependencies": {
+    "express": "^4.15.2"
+  }
+}
