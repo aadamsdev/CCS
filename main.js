@@ -2,41 +2,54 @@ var geolib = require('geolib/dist/geolib');
 var fileSystem = require('fs')
 
 var app = require('express')()
-var http = require('http').Server(app)
+var http = require('http').createServer(app)
 var io = require('socket.io')(http)
+var port = process.env.PORT || 3000;
 
-createPolygon("./boundaries/etobicoke.geojson")
+var currentRoom = 'Default'
+var etobicoke = createPolygon('./boundaries/etobicoke.geojson')
+
+http.listen(port, function(){
+    console.log('listening at port %d', port)
+})
 
 app.get('/', function(req, res){
-  res.sendFile(__dirname + '/main.html')
+    res.sendFile(__dirname + '/main.html')
 })
 
 io.on('connection', function(socket){
-  socket.join('Test room')
-  console.log('a user connected')
 
-  socket.on('chat message', function(msg){
-    console.log('message ' + msg)
-    io.to('Test room').emit('chat message', msg)
-  })
+    console.log('a user connected')
+    socket.join('Default')
 
-  socket.on('disconnect', function(){
-    console.log('user disconnected')
-  })
-})
+    socket.on('location', function(coordinates){
+        console.log('location receieved ' + coordinates.latitude + ' ' + coordinates.longitude)
+        if (geolib.isPointInside(coordinates, etobicoke)){
+            currentRoom = 'Etobicoke'
+            socket.join(currentRoom)
+        } else {
+            currentRoom = 'Default'
+            socket.join(currentRoom)
+        }
+        console.log(currentRoom)
+    })
 
-http.listen(3000, function(){
-  console.log('listening on *:3000')
+    // Send received message
+    socket.on('chat message', function(msg){
+        console.log('message ' + msg)
+        io.to('Test room').emit('chat message', msg)
+    })
+
+    // Disconnection
+    socket.on('disconnect', function(){
+        console.log('user disconnected')
+    })
 })
 
 function createPolygon(file) {
-  fileSystem.readFile(file, 'utf8', function (err, data) {
-    if (err) {
-      return console.log(err)
-    }
-
-    var parsedData = JSON.parse(data)
-
+    // var isInside = geolib.isPointInside({"latitude": 43.614612, "longitude": -79.567578}, polygon)
+    var fileText = fileSystem.readFileSync(file, 'utf8')
+    var parsedData = JSON.parse(fileText)
     var polygon = []
 
     for (let coordinate of parsedData.features[0].geometry.coordinates[0]){
@@ -47,6 +60,5 @@ function createPolygon(file) {
         polygon.push({"latitude": coordinate[0], "longitude": coordinate[1]})
     }
 
-    var isInside = geolib.isPointInside({"latitude": 43.614612, "longitude": -79.567578}, polygon)
-  })
+    return polygon
 }
