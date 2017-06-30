@@ -1,9 +1,13 @@
 'use strict'
 var geolib = require('geolib/dist/geolib');
+var fileSystem = require('fs')
 
-class Geofences{
+class Geofence {
+    constructor(file){
+        this.polygons = []
+    }
 
-    static addGeofenceFromFile(file) {
+     addGeofenceFromFile(file) {
         // var isInside = geolib.isPointInside({"latitude": 43.614612, "longitude": -79.567578}, polygon)
         var fileText = fileSystem.readFileSync(file, 'utf8')
         var parsedData = JSON.parse(fileText)
@@ -20,3 +24,5 @@ class Geofences{
         this.polygons.push(polygon)
     }
 }
+
+module.exports = Geofence
