@@ -57,7 +57,7 @@ io.on('connection', function(socket){
         console.log(messageDetails)
         var time = new Date();
         time = time.toLocaleString('en-US', { hour: 'numeric',minute:'numeric', hour12: true });
-        socket.emit('INCOMING_MESSAGE', {
+        io.to('Default').emit('INCOMING_MESSAGE', {
             message: messageDetails.message,
             username: messageDetails.username,
             timestamp: time,
