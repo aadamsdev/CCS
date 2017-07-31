@@ -4,7 +4,6 @@ const Geofences = require('./geofences.js')
 
 var geolib = require('geolib/dist/geolib');
 
-
 var app = require('express')()
 var http = require('http').createServer(app)
 var io = require('socket.io')(http)
@@ -56,16 +55,14 @@ io.on('connection', function(socket){
     // Send received message
     socket.on(OUTGOING_MESSAGE, function(messageDetails){
         console.log(messageDetails)
+        var time = new Date();
+        time = time.toLocaleString('en-US', { hour: 'numeric',minute:'numeric', hour12: true });
         socket.emit('INCOMING_MESSAGE', {
             message: messageDetails.message,
             username: messageDetails.username,
-            timestamp: messageDetails.timestamp,
+            timestamp: time,
             userIconId: messageDetails.userIconId
         });
-        // console.log(chatMessage.username + ' - ' + chatMessage.message)
-
-
-        // io.to('Test room').emit('chat message', msg)
     })
 
     // Disconnection
