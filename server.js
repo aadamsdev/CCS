@@ -1,6 +1,6 @@
 'use strict';
 const Client = require('./client.js')
-const Geofences = require('./geofences.js')
+const Geofence = require('./Geofence.js')
 
 var geolib = require('geolib/dist/geolib');
 
@@ -10,14 +10,12 @@ var io = require('socket.io')(http)
 var port = process.env.PORT || 3000;
 
 var currentRoom = 'Default'
-var geofences = new Geofences
-geofences.addGeofenceFromFile('./boundaries/etobicoke.geojson')
+var geofences = []
+geofences.push(new Geofence('./boundaries/etobicoke.geojson'))
 
-var clients = []
-
-const NEW_CLIENT = 'newClient'
 const OUTGOING_MESSAGE = 'OUTGOING_MESSAGE'
 const INCOMING_MESSAGE = 'INCOMING_MESSAGE'
+const LOCATION_UPDATE = 'LOCATION_UPDATE';
 
 http.listen(port, function(){
     console.log('listening at port %d', port)
@@ -30,6 +28,14 @@ app.get('/', function(req, res){
 io.on('connection', function(socket){
     console.log('a user connected ' + socket.id)
     socket.join('Default')
+
+    socket.on(LOCATION_UPDATE, function(location){
+        geofences.some(geofence => {
+            if (geofence.containsPoint(location)) {
+                console.log
+            }
+        })
+    })
 
     // socket.on(NEW_CLIENT, function(client){
     //     client.id = socket.id
