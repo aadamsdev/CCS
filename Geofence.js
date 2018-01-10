@@ -25,7 +25,7 @@ class Geofence {
 
 
     containsPoint(point) {
-        return geolib.isPiointInside(point)
+        return geolib.isPointInside(point)
     }
 }
 

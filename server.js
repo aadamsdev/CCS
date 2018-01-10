@@ -13,9 +13,10 @@ var currentRoom = 'Default'
 var geofences = []
 geofences.push(new Geofence('./boundaries/etobicoke.geojson'))
 
-const OUTGOING_MESSAGE = 'OUTGOING_MESSAGE'
-const INCOMING_MESSAGE = 'INCOMING_MESSAGE'
+const OUTGOING_MESSAGE = 'OUTGOING_MESSAGE';
+const INCOMING_MESSAGE = 'INCOMING_MESSAGE';
 const LOCATION_UPDATE = 'LOCATION_UPDATE';
+const CHATROOM_UPDATE = 'CHATROOM_UPDATE';
 
 http.listen(port, function(){
     console.log('listening at port %d', port)
@@ -30,11 +31,20 @@ io.on('connection', function(socket){
     socket.join('Default')
 
     socket.on(LOCATION_UPDATE, function(location){
+        console.log(location)
         geofences.some(geofence => {
-            if (geofence.containsPoint(location)) {
-                console.log
+            if (geofence.containsPoint(location)) {             
+                return true
+            } else {
+                return false
             }
         })
+        io.to('Default').emit(LOCATION_UPDATE, {
+            message: messageDetails.message,
+            username: messageDetails.username,
+            timestamp: time,
+            userIconId: messageDetails.userIconId
+        });
     })
 
     // socket.on(NEW_CLIENT, function(client){
@@ -63,7 +73,7 @@ io.on('connection', function(socket){
         console.log(messageDetails)
         var time = new Date();
         time = time.toLocaleString('en-US', { hour: 'numeric',minute:'numeric', hour12: true });
-        io.to('Default').emit('INCOMING_MESSAGE', {
+        io.to('Default').emit(INCOMING_MESSAGE, {
             message: messageDetails.message,
             username: messageDetails.username,
             timestamp: time,
