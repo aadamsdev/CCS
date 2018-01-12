@@ -8,7 +8,6 @@ class Geofence {
     }
 
     createGeofenceFromFile(file) {
-        // var isInside = geolib.isPointInside({"latitude": 43.614612, "longitude": -79.567578}, polygon)
         var fileText = fileSystem.readFileSync(file, 'utf8')
         var parsedData = JSON.parse(fileText)
         this.polygon = []
@@ -20,12 +19,11 @@ class Geofence {
 
             this.polygon.push({"latitude": coordinate[0], "longitude": coordinate[1]})
         }
-        // this.polygons.push(polygon)
     }
 
 
     containsPoint(point) {
-        return geolib.isPointInside(point)
+        return geolib.isPointInside(point, this.polygon)
     }
 }
 

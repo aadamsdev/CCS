@@ -2,8 +2,6 @@
 const Client = require('./client.js')
 const Geofence = require('./Geofence.js')
 
-var geolib = require('geolib/dist/geolib');
-
 var app = require('express')()
 var http = require('http').createServer(app)
 var io = require('socket.io')(http)
@@ -18,71 +16,55 @@ const INCOMING_MESSAGE = 'INCOMING_MESSAGE';
 const LOCATION_UPDATE = 'LOCATION_UPDATE';
 const CHATROOM_UPDATE = 'CHATROOM_UPDATE';
 
-http.listen(port, function(){
+http.listen(port, function () {
     console.log('listening at port %d', port)
 })
 
-app.get('/', function(req, res){
+app.get('/', function (req, res) {
     res.sendFile(__dirname + '/main.html')
 })
 
-io.on('connection', function(socket){
+io.on('connection', function (socket) {
     console.log('a user connected ' + socket.id)
     socket.join('Default')
 
-    socket.on(LOCATION_UPDATE, function(location){
+    socket.on(LOCATION_UPDATE, function (locationUpdate) {
         console.log(location)
         geofences.some(geofence => {
-            if (geofence.containsPoint(location)) {             
+            if (geofence.containsPoint(location)) {
                 return true
             } else {
                 return false
             }
         })
-        io.to('Default').emit(LOCATION_UPDATE, {
-            message: messageDetails.message,
-            username: messageDetails.username,
-            timestamp: time,
-            userIconId: messageDetails.userIconId
+
+        for (let geofence of geofences) {
+            if (geofence.containsPoint({ locationUpdate.latitude, locationUpdate.longitude })) {
+
+            }
+        }
+
+
+        console.log(geofences)
+        io.to('Default').emit(CHATROOM_UPDATE, {
+            chatRoomName: "test"
         });
     })
 
-    // socket.on(NEW_CLIENT, function(client){
-    //     client.id = socket.id
-    //     var newClient = new Client(client)
-    //
-    //
-    //     // if (client.username)
-    //     clients.push(newClient)
-    //
-    //
-    //     console.log(clients)
-    //
-    //     // if (geolib.isPointInside(coordinates, etobicoke)){
-    //     //     currentRoom = 'Etobicoke'
-    //     //     socket.join(currentRoom)
-    //     // } else {
-    //     //     currentRoom = 'Default'
-    //     //     socket.join(currentRoom)
-    //     // }
-    //     console.log(currentRoom)
-    // })
-
     // Send received message
-    socket.on(OUTGOING_MESSAGE, function(messageDetails){
+    socket.on(OUTGOING_MESSAGE, function (messageDetails) {
         console.log(messageDetails)
         var time = new Date();
-        time = time.toLocaleString('en-US', { hour: 'numeric',minute:'numeric', hour12: true });
+        time = time.toLocaleString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true });
         io.to('Default').emit(INCOMING_MESSAGE, {
             message: messageDetails.message,
             username: messageDetails.username,
-            timestamp: time,
-            userIconId: messageDetails.userIconId
+            timestamp: time
         });
     })
 
     // Disconnection
-    socket.on('disconnect', function(){
+    socket.on('disconnect', function () {
         console.log('user disconnected')
     })
 })
