@@ -11,7 +11,7 @@ const path = require('path')
 
 var currentRoom = 'Default'
 
-//TODO: Create geofence manager
+//TODO: Create geofence managers
 const geofenceMap = new Map()
 geofenceMap.set(path.basename('./boundaries/Etobicoke.geojson', '.geojson'), new Geofence('./boundaries/Etobicoke.geojson'))
 
@@ -31,8 +31,6 @@ io.on('connection', function (socket) {
     // Client location update
     socket.on(LOCATION_UPDATE, function (locationUpdate) {
         console.log(locationUpdate)
-
-        
         if (locationUpdate.lastKnownChatRoom
             && geofenceMap.has(locationUpdate.lastKnownChatRoom)
             && geofenceMap.get(locationUpdate.lastKnownChatRoom).containsPoint({ "latitude": locationUpdate.latitude, "longitude": locationUpdate.longitude })) {
@@ -42,17 +40,15 @@ io.on('connection', function (socket) {
                 chatRoomName: locationUpdate.lastKnownChatRoom
             })
         } else {
-            console.log('2')
-
-            // Change to for loop to allow for breaking
-            geofenceMap.forEach((geofence, key, map) => {
+            for (let [key, geofence] of geofenceMap.entries()) {
                 if (geofence.containsPoint({ "latitude": locationUpdate.latitude, "longitude": locationUpdate.longitude })) {
                     socket.join(locationUpdate.lastKnownChatRoom)
                     io.to(socket.id).emit(CHATROOM_UPDATE, {
                         chatRoomName: geofence.name
                     })
+                    break
                 }
-            })
+            }
         }
     })
 
