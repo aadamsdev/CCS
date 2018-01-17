@@ -4,18 +4,14 @@ const fileSystem = require('fs')
 const path = require('path')
 
 class Geofence {
-    constructor(file){
+    constructor(name, coordinates){
+        this.name = name
         this.polygon = []
-        this.createGeofenceFromFile(file)
+        this.createGeofenceFromFile(coordinates)
     }
 
-    createGeofenceFromFile(file) {
-        this.name = path.basename(file, '.geojson')
-        
-        const fileText = fileSystem.readFileSync(file, 'utf8')
-        const parsedData = JSON.parse(fileText)
-        
-        for (let coordinate of parsedData.features[0].geometry.coordinates[0]){
+    createGeofenceFromFile(coordinates) {   
+        for (let coordinate of coordinates){
             const tempLat = coordinate[0]
             coordinate[0] = coordinate[1]
             coordinate[1] = tempLat
@@ -23,7 +19,6 @@ class Geofence {
             this.polygon.push({"latitude": coordinate[0], "longitude": coordinate[1]})
         }
     }
-
 
     containsPoint(point) {
         return geolib.isPointInside(point, this.polygon)

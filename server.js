@@ -1,19 +1,14 @@
 'use strict';
 const Client = require('./client.js')
 const Geofence = require('./Geofence.js')
+const GeofenceManager = require('./GeofenceManager.js')
 
 const app = require('express')()
 const http = require('http').createServer(app)
 const io = require('socket.io')(http)
 const port = process.env.PORT || 3000;
 
-const path = require('path')
-
-var currentRoom = 'Default'
-
-//TODO: Create geofence managers
-const geofenceMap = new Map()
-geofenceMap.set(path.basename('./boundaries/Etobicoke.geojson', '.geojson'), new Geofence('./boundaries/Etobicoke.geojson'))
+const geofenceManager = new GeofenceManager('./boundaries/neighbourhoods.json')
 
 const OUTGOING_MESSAGE = 'OUTGOING_MESSAGE';
 const INCOMING_MESSAGE = 'INCOMING_MESSAGE';
@@ -32,22 +27,21 @@ io.on('connection', function (socket) {
     socket.on(LOCATION_UPDATE, function (locationUpdate) {
         console.log(locationUpdate)
         if (locationUpdate.lastKnownChatRoom
-            && geofenceMap.has(locationUpdate.lastKnownChatRoom)
-            && geofenceMap.get(locationUpdate.lastKnownChatRoom).containsPoint({ "latitude": locationUpdate.latitude, "longitude": locationUpdate.longitude })) {
+            && geofenceManager.contains(locationUpdate.lastKnownChatRoom)
+            && geofenceManager.get(locationUpdate.lastKnownChatRoom).containsPoint(locationUpdate)) {
 
             socket.join(locationUpdate.lastKnownChatRoom)
             io.to(socket.id).emit(CHATROOM_UPDATE, {
                 chatRoomName: locationUpdate.lastKnownChatRoom
             })
         } else {
-            for (let [key, geofence] of geofenceMap.entries()) {
-                if (geofence.containsPoint({ "latitude": locationUpdate.latitude, "longitude": locationUpdate.longitude })) {
-                    socket.join(locationUpdate.lastKnownChatRoom)
-                    io.to(socket.id).emit(CHATROOM_UPDATE, {
-                        chatRoomName: geofence.name
-                    })
-                    break
-                }
+            const geofence = geofenceManager.getGeofenceContainingPoint(locationUpdate)
+            if (geofence) {
+                console.log(geofence)
+                socket.join(geofence.name)
+                io.to(socket.id).emit(CHATROOM_UPDATE, {
+                    chatRoomName: geofence.name
+                })
             }
         }
     })
