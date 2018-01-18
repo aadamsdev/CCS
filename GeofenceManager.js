@@ -18,7 +18,7 @@ class GeofenceManager {
     }
 
     contains(geofenceName) {
-        return this.geofenceMap.contains(geofenceName)
+        return this.geofenceMap.has(geofenceName)
     }
 
     getGeofence(geofenceName) {

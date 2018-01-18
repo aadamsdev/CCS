@@ -3,6 +3,9 @@
   "version": "0.0.1",
   "description": "communities web service backend",
   "dependencies": {
-    "express": "^4.15.2"
+    "express": "^4.15.2",
+    "geolib": "^2.0.24",
+    "mongodb": "^3.0.1",
+    "socket.io": "^2.0.4"
   }
 }

@@ -1,37 +1,44 @@
 'use strict';
-const Client = require('./client.js')
-const Geofence = require('./Geofence.js')
-const GeofenceManager = require('./GeofenceManager.js')
-
+const Geofence = require('./geofence')
+const GeofenceManager = require('./geofenceManager')
+const SocketEvents = require('./socketEvents')
+const MongoClient = require('mongodb').MongoClient;
+const MongoConfig = require('./mongoConfig')
 const app = require('express')()
 const http = require('http').createServer(app)
 const io = require('socket.io')(http)
 const port = process.env.PORT || 3000;
 
 const geofenceManager = new GeofenceManager('./boundaries/neighbourhoods.json')
-
-const OUTGOING_MESSAGE = 'OUTGOING_MESSAGE';
-const INCOMING_MESSAGE = 'INCOMING_MESSAGE';
-const LOCATION_UPDATE = 'LOCATION_UPDATE';
-const CHATROOM_UPDATE = 'CHATROOM_UPDATE';
+let dbClient = null
 
 http.listen(port, function () {
     console.log('listening at port %d', port)
 })
 
-io.on('connection', function (socket) {
+// Use connect method to connect to the server
+MongoClient.connect(MongoConfig.db.uri, function (err, client) {
+    if (err) {
+        console.log(err)
+    } else {
+        console.log("Connected successfully to mongodb server");
+        dbClient = client
+    }
+})
+
+io.on(SocketEvents.connection, function (socket) {
     console.log('a user connected ' + socket.id)
     socket.join('Default')
 
     // Client location update
-    socket.on(LOCATION_UPDATE, function (locationUpdate) {
+    socket.on(SocketEvents.location_update, function (locationUpdate) {
         console.log(locationUpdate)
         if (locationUpdate.lastKnownChatRoom
             && geofenceManager.contains(locationUpdate.lastKnownChatRoom)
-            && geofenceManager.get(locationUpdate.lastKnownChatRoom).containsPoint(locationUpdate)) {
+            && geofenceManager.getGeofence(locationUpdate.lastKnownChatRoom).containsPoint(locationUpdate)) {
 
             socket.join(locationUpdate.lastKnownChatRoom)
-            io.to(socket.id).emit(CHATROOM_UPDATE, {
+            io.to(socket.id).emit(SocketEvents.chatroom_update, {
                 chatRoomName: locationUpdate.lastKnownChatRoom
             })
         } else {
@@ -39,7 +46,7 @@ io.on('connection', function (socket) {
             if (geofence) {
                 console.log(geofence)
                 socket.join(geofence.name)
-                io.to(socket.id).emit(CHATROOM_UPDATE, {
+                io.to(socket.id).emit(SocketEvents.chatroom_update, {
                     chatRoomName: geofence.name
                 })
             }
@@ -47,10 +54,10 @@ io.on('connection', function (socket) {
     })
 
     // Send received message
-    socket.on(OUTGOING_MESSAGE, function (messageDetails) {
+    socket.on(SocketEvents.outgoing_message, function (messageDetails) {
         console.log(messageDetails)
         const time = new Date().toLocaleString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true });
-        io.to('Default').emit(INCOMING_MESSAGE, {
+        io.to('Default').emit(SocketEvents.incoming_message, {
             message: messageDetails.message,
             username: messageDetails.username,
             timestamp: time
@@ -58,7 +65,7 @@ io.on('connection', function (socket) {
     })
 
     // Disconnection
-    socket.on('disconnect', function () {
+    socket.on(SocketEvents.disconnect, function () {
         console.log('user disconnected')
     })
 })
