@@ -1,14 +1,24 @@
 const MongoConfig = require('./mongoConfig.js')
 
 class ChatHistory {
-    static getForChatRoom(chatRoom) {
-        const collection = getCollection()
-        collection.find({soldOut: isSoldOut}).toArray()
-            .then(products => res.status(200).send(products))
-            .catch(err => res.status(500).send(err))
+    static getForChatRoom(db, chatRoom, onSuccess, onError) {
+        const collection = this.getCollection(db)
+        collection.find({chatRoomName: chatRoom})
+            .sort({timeStamp: -1})
+            .limit(50)
+            .toArray()
+            .then(products => onSuccess(products))
+            .catch(err => onError(err))
     }
 
-    static getCollection() {
+    static putForChatRoom(db, message) {
+        const collection = this.getCollection(db)
+        collection.insertOne(message, (err, result) => {
+            if (err) throw err
+        })
+    }
+
+    static getCollection(db) {
         return db.collection(MongoConfig.db.collections.chatHistory)
     }
 }
