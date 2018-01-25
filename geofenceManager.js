@@ -27,7 +27,7 @@ class GeofenceManager {
 
     getGeofenceContainingPoint(point) {
         for (let [name, geofence] of this.geofenceMap.entries()) {   
-            console.log(name, geofence.polygon)
+            // console.log(name, geofence.polygon)
             if (geofence.containsPoint(point)) {
                 return geofence
             }

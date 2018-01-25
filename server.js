@@ -42,25 +42,14 @@ io.on(SocketEvents.connection, function (socket) {
             && geofenceManager.getGeofence(locationUpdate.lastKnownChatRoom).containsPoint(locationUpdate)) {
 
             const chatRoom = locationUpdate.lastKnownChatRoom
-            ChatHistory.getForChatRoom(db, chatRoom, (chatHistory) => {
-                console.log(chatHistory)
-
-                socket.join(chatRoom)
-                io.to(socket.id).emit(SocketEvents.chatroom_update, {
-                    chatRoomName: chatRoom,
-                    messages: chatHistory 
-                })
-            }, (err) => {
-                console.log(err)
-            })
+            socket.join(chatRoom)
+            sendChatroomUpdate(io, socket, db, chatRoom)
         } else { // Otherwise loop find the geofence containing user's location
             const geofence = geofenceManager.getGeofenceContainingPoint(locationUpdate)
             if (geofence) {
-                console.log(geofence)
-                socket.join(geofence.name)
-                io.to(socket.id).emit(SocketEvents.chatroom_update, {
-                    chatRoomName: geofence.name
-                })
+                const chatRoom = geofence.name
+                socket.join(chatRoom)
+                sendChatroomUpdate(io, socket, db, chatRoom)
             } else {
                 // TODO: ADD HANDLING FOR USERS OUTSIDE TORONTO
             }
@@ -71,11 +60,12 @@ io.on(SocketEvents.connection, function (socket) {
     socket.on(SocketEvents.outgoing_message, function (message) {
         console.log(message)
         const chatRoom = message.chatRoomName
-        message['timestamp'] = getTimestampString()
+        message['timestamp'] = new Date()
 
-        ChatHistory.putForChatRoom(db, message)
-        socket.join(chatRoom)
-        io.to(chatRoom).emit(SocketEvents.incoming_message, message);
+        ChatHistory.putForChatRoom(db, message, (updatedMessage) => {
+            socket.join(chatRoom)
+            io.to(chatRoom).emit(SocketEvents.incoming_message, updatedMessage);
+        })
     })
 
     // Disconnection
@@ -84,6 +74,15 @@ io.on(SocketEvents.connection, function (socket) {
     })
 })
 
-function getTimestampString() {
-    return new Date().toLocaleString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true })
+function sendChatroomUpdate(io, socket, db, chatRoom) {
+    ChatHistory.getForChatRoomUpdate(db, chatRoom, (chatHistory) => {
+        console.log(chatHistory)
+
+        io.to(socket.id).emit(SocketEvents.chatroom_update, {
+            chatRoomName: chatRoom,
+            messages: chatHistory
+        })
+    }, (err) => {
+        console.log(err)
+    })
 }

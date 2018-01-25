@@ -9,7 +9,8 @@ module.exports = {
         name: 'CCS',
         uri: 'mongodb://localhost:27017',
         collections: {
-            chatHistory: 'chat_history'
+            chatHistory: 'chat_history',
+            chatRoom: 'chat_room'
         }
     },
 }
