@@ -63,6 +63,7 @@ class ChatSocket {
         })    
     }
 
+    // Called when joining a new chatroom, sends room chat history to client
     sendChatroomUpdate(io, socket, db, chatRoom) {
         ChatHistoryDao.getForChatRoomUpdate(db, chatRoom, (chatHistory) => {
             console.log(chatHistory)
