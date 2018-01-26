@@ -7,13 +7,19 @@ const MongoClient = require('mongodb').MongoClient;
 const MongoConfig = require('./mongoConfig')
 const ChatHistory = require('./chatHistory')
 
+const ObjectId = require('mongodb').ObjectID;
+
+const bodyParser = require('body-parser')
+
 const app = require('express')()
 const http = require('http').createServer(app)
 const io = require('socket.io')(http)
-const port = process.env.PORT || 3000;
+const port = process.env.PORT || 8000;
 
 const geofenceManager = new GeofenceManager('./boundaries/neighbourhoods.json')
 let db = null
+
+app.use(bodyParser.urlencoded({ extended: true }));
 
 http.listen(port, function () {
     console.log('listening at port %d', port)
