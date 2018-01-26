@@ -1,8 +1,7 @@
-
 const Geofence = require('../geo/geofence')
 const GeofenceManager = require('../geo/geofenceManager')
 const SocketEvents = require('../config/socketEvents')
-const ChatHistory = require('../dao/chatHistory')
+const ChatHistoryDao = require('../dao/chatHistoryDao')
 
 let instance = null
 
@@ -51,7 +50,7 @@ class ChatSocket {
                 const chatRoom = message.chatRoomName
                 message['timestamp'] = new Date()
         
-                ChatHistory.putForChatRoom(db, message, (updatedMessage) => {
+                ChatHistoryDao.putForChatRoom(db, message, (updatedMessage) => {
                     socket.join(chatRoom)
                     io.to(chatRoom).emit(SocketEvents.incoming_message, updatedMessage);
                 })
@@ -65,7 +64,7 @@ class ChatSocket {
     }
 
     sendChatroomUpdate(io, socket, db, chatRoom) {
-        ChatHistory.getForChatRoomUpdate(db, chatRoom, (chatHistory) => {
+        ChatHistoryDao.getForChatRoomUpdate(db, chatRoom, (chatHistory) => {
             console.log(chatHistory)
     
             io.to(socket.id).emit(SocketEvents.chatroom_update, {

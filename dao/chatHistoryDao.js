@@ -1,15 +1,15 @@
 const MongoConfig = require('../config/mongoConfig')
+const ObjectId = require('mongodb').ObjectId
 
-
-class ChatHistory {
-    static getForChatRoomByPage(db, chatRoom, lastMessageInChat, onSuccess, onError) {
+class ChatHistoryDao {
+    static getForChatRoomByPage(db, chatRoomName, lastMessageInChat, onSuccess, onError) {
         const collection = this.getCollection(db)
         db.collection(MongoConfig.db.collections.chatHistory)
-            .find({ '_id': { $gte: new ObjectId(req.query.message) } })
+            .find({ '_id': { $gte: new ObjectId(lastMessageInChat) }, 'chatRoomName': chatRoomName })
             .sort({ '_id': -1 })
             .limit(50)
             .toArray()
-            .then(products => res.status(200).send(products))
+            .then(messages => onSuccess(messages))
             .catch(err => onError(err))
     }
 
@@ -36,4 +36,4 @@ class ChatHistory {
     }
 }
 
-module.exports = ChatHistory
+module.exports = ChatHistoryDao

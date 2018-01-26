@@ -13,8 +13,6 @@ const http = require('http').createServer(app)
 const io = require('socket.io')(http)
 const port = process.env.PORT || 8000;
 
-
-
 app.use(bodyParser.urlencoded({ extended: true }));
 
 http.listen(port, function () {
@@ -31,5 +29,11 @@ MongoClient.connect(MongoConfig.db.uri, function (err, client) {
 
         const chatSocket = new ChatSocket()
         chatSocket.registerSocketEvents(io, db)
+
+        require('./routes/chatHistoryRoute')(app, db)
+
+        app.listen(8080, () => {
+            console.log('express listening on ' + port)
+        })
     }
 })
