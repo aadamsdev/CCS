@@ -31,9 +31,5 @@ MongoClient.connect(MongoConfig.db.uri, function (err, client) {
         chatSocket.registerSocketEvents(io, db)
 
         require('./routes/chatHistoryRoute')(app, db)
-
-        app.listen(8080, () => {
-            console.log('express listening on ' + port)
-        })
     }
 })
