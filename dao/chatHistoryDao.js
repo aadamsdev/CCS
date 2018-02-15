@@ -4,8 +4,7 @@ const ObjectId = require('mongodb').ObjectId
 class ChatHistoryDao {
     static getForChatRoomByPage(db, chatRoomName, lastMessageInChat, onSuccess, onError) {
         const collection = this.getCollection(db)
-        db.collection(MongoConfig.db.collections.chatHistory)
-            .find({ '_id': { $lt: new ObjectId(lastMessageInChat) }, 'chatRoomName': chatRoomName })
+        collection.find({ '_id': { $lt: new ObjectId(lastMessageInChat) }, 'chatRoomName': chatRoomName })
             .sort({ '_id': -1 })
             .limit(50)
             .toArray()
