@@ -50,7 +50,7 @@ class ChatSocket {
                 const chatRoom = message.chatRoomName
                 message['timestamp'] = new Date()
         
-                ChatHistoryDao.putForChatRoom(db, message, (updatedMessage) => {
+                ChatHistoryDao.create(db, message, (updatedMessage) => {
                     socket.join(chatRoom)
                     io.to(chatRoom).emit(SocketEvents.incoming_message, updatedMessage);
                 })
