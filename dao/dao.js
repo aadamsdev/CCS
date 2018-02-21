@@ -10,8 +10,10 @@ class Dao {
         })
     }
 
-    static update(db, id, obj, onSuccess, onError) {
-
+    static updateById(db, id, updatedProps, onSuccess, onError) {
+        collection.update({ '_id': new ObjectId(id)}, updateProps, { upsert: true })
+        .then(updated => onSuccess(updated))
+        .catch(err => onError(err))
     }
     
     static getCollection(db) {

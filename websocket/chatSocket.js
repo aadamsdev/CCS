@@ -2,6 +2,7 @@ const Geofence = require('../geo/geofence')
 const GeofenceManager = require('../geo/geofenceManager')
 const SocketEvents = require('../config/socketEvents')
 const ChatHistoryDao = require('../dao/chatHistoryDao')
+const UserStatusDao = require('../dao/userStatusDao')
 
 let instance = null
 
@@ -17,11 +18,11 @@ class ChatSocket {
     }
 
     registerSocketEvents(io, db) {
-        io.on(SocketEvents.connection, function (socket) {
+        io.on(SocketEvents.connection, (socket) => {
             console.log('a user connected ' + socket.id)
         
             // Client location update
-            socket.on(SocketEvents.location_update, function (locationUpdate) {
+            socket.on(SocketEvents.location_update, (locationUpdate) => {
                 console.log(locationUpdate)
         
                 // Check if client is in previously known geofence; for performance purposes
@@ -45,7 +46,7 @@ class ChatSocket {
             })
         
             // Send received message
-            socket.on(SocketEvents.outgoing_message, function (message) {
+            socket.on(SocketEvents.outgoing_message, (message) => {
                 console.log(message)
                 const chatRoom = message.chatRoomName
                 message['timestamp'] = new Date()
@@ -57,7 +58,7 @@ class ChatSocket {
             })
         
             // Disconnection
-            socket.on(SocketEvents.disconnect, function () {
+            socket.on(SocketEvents.disconnect, () => {
                 console.log('user disconnected')
             })
         })    

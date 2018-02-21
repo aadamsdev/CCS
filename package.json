@@ -3,6 +3,7 @@
   "version": "0.0.1",
   "description": "communities web service backend",
   "dependencies": {
+    "bcrypt": "^1.0.3",
     "body-parser": "^1.18.2",
     "express": "^4.15.2",
     "geolib": "^2.0.24",

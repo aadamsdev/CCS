@@ -14,6 +14,7 @@ const io = require('socket.io')(http)
 const port = process.env.PORT || 8000;
 
 app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.json());
 
 http.listen(port, function () {
     console.log('listening at port %d', port)
@@ -31,5 +32,6 @@ MongoClient.connect(MongoConfig.db.uri, function (err, client) {
         chatSocket.registerSocketEvents(io, db)
 
         require('./routes/chatHistoryRoute')(app, db)
+        require('./routes/userRoute')(app, db)
     }
 })

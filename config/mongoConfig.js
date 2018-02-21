@@ -10,7 +10,8 @@ module.exports = {
         uri: 'mongodb://localhost:27017',
         collections: {
             chatHistory: 'chat_history',
-            userStatus: 'user_status'
+            userStatus: 'user_status',
+            user: 'user'
         }
     },
 }
