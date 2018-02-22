@@ -20,18 +20,19 @@ class ChatSocket {
     registerSocketEvents(io, db) {
         io.on(SocketEvents.connection, (socket) => {
             console.log('a user connected ' + socket.id)
-        
+
             // Client location update
             socket.on(SocketEvents.location_update, (locationUpdate) => {
                 console.log(locationUpdate)
-        
+
                 // Check if client is in previously known geofence; for performance purposes
                 if (locationUpdate.lastKnownChatRoom
                     && instance.geofenceManager.contains(locationUpdate.lastKnownChatRoom)
                     && instance.geofenceManager.getGeofence(locationUpdate.lastKnownChatRoom).containsPoint(locationUpdate)) {
-        
+
                     const chatRoom = locationUpdate.lastKnownChatRoom
                     socket.join(chatRoom)
+                    instance.setUserOnline(io, socket, db, chatRoom)
                     instance.sendChatroomUpdate(io, socket, db, chatRoom)
                 } else { // Otherwise loop find the geofence containing user's location
                     const geofence = instance.geofenceManager.getGeofenceContainingPoint(locationUpdate)
@@ -44,31 +45,40 @@ class ChatSocket {
                     }
                 }
             })
-        
+
             // Send received message
             socket.on(SocketEvents.outgoing_message, (message) => {
                 console.log(message)
                 const chatRoom = message.chatRoomName
                 message['timestamp'] = new Date()
-        
+
                 ChatHistoryDao.create(db, message, (updatedMessage) => {
                     socket.join(chatRoom)
                     io.to(chatRoom).emit(SocketEvents.incoming_message, updatedMessage);
                 })
             })
-        
+
             // Disconnection
             socket.on(SocketEvents.disconnect, () => {
                 console.log('user disconnected')
+                socket.emit()
             })
-        })    
+        })
+    }
+
+    setUserOnline() {
+        
+    }
+
+    setUserOffline() {
+
     }
 
     // Called when joining a new chatroom, sends room chat history to client
     sendChatroomUpdate(io, socket, db, chatRoom) {
         ChatHistoryDao.getForChatRoomUpdate(db, chatRoom, (chatHistory) => {
             console.log(chatHistory)
-    
+
             io.to(socket.id).emit(SocketEvents.chatroom_update, {
                 chatRoomName: chatRoom,
                 messages: chatHistory

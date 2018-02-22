@@ -1,4 +1,3 @@
-const ChatHistoryDao = require('../dao/chatHistoryDao')
 const UserDao = require('../dao/userDao')
 
 module.exports = function (app, db) {

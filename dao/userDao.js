@@ -55,8 +55,6 @@ class UserDao extends Dao {
         const collection = this.getCollection(db)
         this.getByUserName(db, username, (users) => {
             const user = users[0]
-            console.log(user)
-
             if (user) {
                 bcrypt.compare(password, user.password, (err, same) => {
                     if (same) {

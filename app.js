@@ -33,5 +33,6 @@ MongoClient.connect(MongoConfig.db.uri, function (err, client) {
 
         require('./routes/chatHistoryRoute')(app, db)
         require('./routes/userRoute')(app, db)
+        require('./routes/userStatusRoute')(app, db)
     }
 })
