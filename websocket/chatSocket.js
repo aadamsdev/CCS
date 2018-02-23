@@ -32,13 +32,13 @@ class ChatSocket {
 
                     const chatRoom = locationUpdate.lastKnownChatRoom
                     const username = 'Andrew'
-                    instance.onLocationUpdated(io, socket, db, chatRoom)                                                
+                    instance.onLocationUpdated(db, io, username, socket, chatRoom)
                 } else { // Otherwise loop find the geofence containing user's location
                     const geofence = instance.geofenceManager.getGeofenceContainingPoint(locationUpdate)
                     if (geofence) {
                         const chatRoom = geofence.name
                         const username = 'Andrew'
-                        instance.onLocationUpdated(io, socket, db, chatRoom)                        
+                        instance.onLocationUpdated(db, io, username, socket, chatRoom)
                     } else {
                         // TODO: ADD HANDLING FOR USERS OUTSIDE TORONTO
                     }
@@ -59,22 +59,26 @@ class ChatSocket {
 
             // Disconnection
             socket.on(SocketEvents.disconnect, () => {
-                console.log('user disconnected')
-                socket.emit()
+                console.log('user disconnected ' + socket.id)
+                instance.setUserStatus(db, socket, null, null, false, () => {
+
+                }, (err) => {
+
+                })
             })
         })
     }
 
-    onLocationUpdated(io, socket, db, chatRoom) {
+    onLocationUpdated(db, io, username, socket, chatRoom) {
         socket.join(chatRoom) // Place socket in desired chatroom
-        instance.setUserStatus(socket, db, chatRoom, true) // Set user online status to true for desired chatroom
+        instance.setUserStatus(db, socket, username, chatRoom, true) // Set user online status to true for desired chatroom
         instance.sendChatroomUpdate(io, socket, db, chatRoom) // send chatroom update to client
     }
 
-    setUserStatus(username, socket, db, chatRoom, isOnline) {
-        UserStatusDao.setUserStatus(db, username, socket.id, chatRoom.chatRoomName, isOnline, () => {
+    setUserStatus(db, socket, username, chatRoom, isOnline) {
+        UserStatusDao.setUserStatus(db, username, socket.id, chatRoom, isOnline, () => {
 
-        }, () => {
+        }, (err) => {
 
         })
     }
@@ -83,8 +87,8 @@ class ChatSocket {
     sendChatroomUpdate(io, socket, db, chatRoom) {
         ChatHistoryDao.getForChatRoomUpdate(db, chatRoom, (chatHistory) => {
             io.to(socket.id).emit(SocketEvents.chatroom_update, {
-                chatRoomName: chatRoom,
-                messages: chatHistory
+                'chatRoomName': chatRoom,
+                'messages': chatHistory
             })
         }, (err) => {
             console.log(err)
