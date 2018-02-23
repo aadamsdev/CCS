@@ -9,9 +9,9 @@ class Dao {
             .catch(err => onError(err))
     }
 
-    static updateById(db, id, updatedProps, onSuccess, onError) {
-        collection.update({ '_id': new ObjectId(id) }, updateProps, { upsert: true })
-            .then(updated => onSuccess(updated))
+    static update(db, updateProperty, propertyToFind, updatedProps, onSuccess, onError) {
+        collection.update({ updateProperty: propertyToFind }, updateProps, { upsert: true })
+            .then(result => onSuccess(result))
             .catch(err => onError(err))
     }
 

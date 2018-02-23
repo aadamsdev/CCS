@@ -31,15 +31,14 @@ class ChatSocket {
                     && instance.geofenceManager.getGeofence(locationUpdate.lastKnownChatRoom).containsPoint(locationUpdate)) {
 
                     const chatRoom = locationUpdate.lastKnownChatRoom
-                    socket.join(chatRoom)
-                    instance.setUserOnline(io, socket, db, chatRoom)
-                    instance.sendChatroomUpdate(io, socket, db, chatRoom)
+                    const username = 'Andrew'
+                    instance.onLocationUpdated(io, socket, db, chatRoom)                                                
                 } else { // Otherwise loop find the geofence containing user's location
                     const geofence = instance.geofenceManager.getGeofenceContainingPoint(locationUpdate)
                     if (geofence) {
                         const chatRoom = geofence.name
-                        socket.join(chatRoom)
-                        instance.sendChatroomUpdate(io, socket, db, chatRoom)
+                        const username = 'Andrew'
+                        instance.onLocationUpdated(io, socket, db, chatRoom)                        
                     } else {
                         // TODO: ADD HANDLING FOR USERS OUTSIDE TORONTO
                     }
@@ -66,19 +65,23 @@ class ChatSocket {
         })
     }
 
-    setUserOnline() {
-        
+    onLocationUpdated(io, socket, db, chatRoom) {
+        socket.join(chatRoom) // Place socket in desired chatroom
+        instance.setUserStatus(socket, db, chatRoom, true) // Set user online status to true for desired chatroom
+        instance.sendChatroomUpdate(io, socket, db, chatRoom) // send chatroom update to client
     }
 
-    setUserOffline() {
+    setUserStatus(username, socket, db, chatRoom, isOnline) {
+        UserStatusDao.setUserStatus(db, username, socket.id, chatRoom.chatRoomName, isOnline, () => {
 
+        }, () => {
+
+        })
     }
 
     // Called when joining a new chatroom, sends room chat history to client
     sendChatroomUpdate(io, socket, db, chatRoom) {
         ChatHistoryDao.getForChatRoomUpdate(db, chatRoom, (chatHistory) => {
-            console.log(chatHistory)
-
             io.to(socket.id).emit(SocketEvents.chatroom_update, {
                 chatRoomName: chatRoom,
                 messages: chatHistory

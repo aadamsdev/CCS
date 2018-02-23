@@ -1,7 +1,6 @@
 const UserStatusDao = require('../dao/userStatusDao')
 
 module.exports = function (app, db) {
-
     app.get('/userStatus/all', (req, res) => {
         const query = req.query
         if (query && query.chatRoomName) {
