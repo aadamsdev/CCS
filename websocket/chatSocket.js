@@ -60,11 +60,7 @@ class ChatSocket {
             // Disconnection
             socket.on(SocketEvents.disconnect, () => {
                 console.log('user disconnected ' + socket.id)
-                instance.setUserStatus(db, socket, null, null, false, () => {
-
-                }, (err) => {
-
-                })
+                instance.setUserStatus(db, socket, null, null, false)
             })
         })
     }
@@ -76,10 +72,10 @@ class ChatSocket {
     }
 
     setUserStatus(db, socket, username, chatRoom, isOnline) {
-        UserStatusDao.setUserStatus(db, username, socket.id, chatRoom, isOnline, () => {
-
+        UserStatusDao.setUserStatus(db, username, socket.id, chatRoom, isOnline, (result) => {
+            console.log('updated user status')
         }, (err) => {
-
+            console.error('setUserStatus Error', err)
         })
     }
 
@@ -91,7 +87,7 @@ class ChatSocket {
                 'messages': chatHistory
             })
         }, (err) => {
-            console.log(err)
+            console.error('sendChatroomUpdate Error', err)
         })
     }
 }

@@ -8,27 +8,24 @@ class UserStatusDao extends Dao {
         const collection = this.getCollection(db)
         this.getUserStatusForChatRoom(db, username, socketId, chatRoomName, (status) => {
             if (status && status.length > 0) { // User status record exists, find record by socket id and 
-                console.log('status', status)
-                console.log(isOnline)
-
-                // const updateSuccess = null
-                // const updateError = null
                 const updateSuccess = (result) => {
-                    console.log('update', result)
                     onSuccess(result)
                 }
 
                 const updateError = (err) => {
-                    console.log('update erorr', err)
                     onError(err)
                 }
 
+                const userStatusProps = { socketId: socketId, online: isOnline, chatRoomName: chatRoomName }
+
+                // Update query using username if online and socketId when offline since we only have socket obj from disconnection callback
                 if (isOnline) {
-                    _this.update(db, { username: username }, { $set: { socketId: socketId, online: true, chatRoomName: chatRoomName } }, updateSuccess, updateError)
+                    _this.update(db, { username: username }, userStatusProps, updateSuccess, updateError)
                 } else {
-                    _this.update(db, { socketId: socketId }, { $set: { socketId: socketId, online: true, chatRoomName: chatRoomName } }, updateSuccess, updateError)
+                    _this.update(db, { socketId: socketId }, userStatusProps, updateSuccess, updateError)
                 }
             } else { // User status does not exist in chat room, have to create a record
+                console.log('creating')
                 _this.create(db, { 'username': username, 'socketId': socketId, 'chatRoomName': chatRoomName, 'online': isOnline }, (result) => {
                     onSuccess(result)
                 }, (err) => {
