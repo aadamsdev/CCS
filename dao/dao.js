@@ -5,7 +5,7 @@ class Dao {
     static create(db, obj, onSuccess, onError) {
         const collection = this.getCollection(db)
         collection.insertOne(obj, null)
-            .then(result => onSuccess(result))
+            .then(commandResult => onSuccess(commandResult.result))
             .catch(err => onError(err))
     }
 

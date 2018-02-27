@@ -16,12 +16,12 @@ const port = process.env.PORT || 8000;
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
-http.listen(port, function () {
+http.listen(port, () => {
     console.log('listening at port %d', port)
 })
 
 // Use connect method to connect to the server
-MongoClient.connect(MongoConfig.db.uri, function (err, client) {
+MongoClient.connect(MongoConfig.db.uri, (err, client) => {
     if (err) {
         console.log(err)
     } else {

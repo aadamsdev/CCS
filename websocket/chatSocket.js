@@ -51,9 +51,12 @@ class ChatSocket {
                 const chatRoom = message.chatRoomName
                 message['timestamp'] = new Date()
 
-                ChatHistoryDao.create(db, message, (updatedMessage) => {
-                    socket.join(chatRoom)
-                    io.to(chatRoom).emit(SocketEvents.incoming_message, updatedMessage);
+                ChatHistoryDao.create(db, message, (result) => {
+                    console.log(result)
+                    if (result && result.n > 0) {
+                        socket.join(chatRoom)
+                        io.to(chatRoom).emit(SocketEvents.incoming_message, message);
+                    }
                 })
             })
 
@@ -67,10 +70,21 @@ class ChatSocket {
 
     onLocationUpdated(db, io, username, socket, chatRoom) {
         socket.join(chatRoom) // Place socket in desired chatroom
-        instance.setUserStatus(db, socket, username, chatRoom, true) // Set user online status to true for desired chatroom
+        UserStatusDao.getUserStatusForChatRoom(db, username, null, null, (status) => {
+            instance.setUserStatus(db, socket, username, chatRoom, true) // Set user online status to true for desired chatroom
+
+        }, (err) => {
+
+        })
+
         instance.sendChatroomUpdate(io, socket, db, chatRoom) // send chatroom update to client
     }
 
+    // ssendUserStatusToChatRoom(socket, username, chatRoom, isOnline) {
+    //     io.to(chatRoom).emit(SocketEvents.user_status_update)
+    // }
+
+    // Set user status for online/offline purposes
     setUserStatus(db, socket, username, chatRoom, isOnline) {
         UserStatusDao.setUserStatus(db, username, socket.id, chatRoom, isOnline, (result) => {
             console.log('updated user status')
