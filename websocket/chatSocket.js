@@ -31,14 +31,14 @@ class ChatSocket {
                     && instance.geofenceManager.getGeofence(locationUpdate.lastKnownChatRoom).containsPoint(locationUpdate)) {
 
                     const chatRoom = locationUpdate.lastKnownChatRoom
-                    const username = 'Andrew'
-                    instance.onLocationUpdated(db, io, username, socket, chatRoom)
+                    const username = locationUpdate.username
+                    instance.sendLocationUpdate(db, io, username, socket, chatRoom)
                 } else { // Otherwise loop find the geofence containing user's location
                     const geofence = instance.geofenceManager.getGeofenceContainingPoint(locationUpdate)
                     if (geofence) {
                         const chatRoom = geofence.name
-                        const username = 'Andrew'
-                        instance.onLocationUpdated(db, io, username, socket, chatRoom)
+                        const username = locationUpdate.username
+                        instance.sendLocationUpdate(db, io, username, socket, chatRoom)
                     } else {
                         // TODO: ADD HANDLING FOR USERS OUTSIDE TORONTO
                     }
@@ -68,40 +68,61 @@ class ChatSocket {
         })
     }
 
-    onLocationUpdated(db, io, username, socket, chatRoom) {
-        socket.join(chatRoom) // Place socket in desired chatroom
-        UserStatusDao.getUserStatusForChatRoom(db, username, null, null, (status) => {
-            instance.setUserStatus(db, socket, username, chatRoom, true) // Set user online status to true for desired chatroom
+    sendLocationUpdate(db, io, username, socket, chatRoom) {
+        console.log(chatRoom)
 
-        }, (err) => {
-
-        })
-
-        instance.sendChatroomUpdate(io, socket, db, chatRoom) // send chatroom update to client
+        socket.join(chatRoom) // Place socket in desired chatroom            
+        instance.setUserStatus(db, socket, username, chatRoom, true, (result) => { // Set user online status to true for desired chatroom
+            if (result) {
+                instance.sendChatroomUpdate(io, socket, db, chatRoom) // send chatroom update to client        
+            }
+        })     
     }
 
-    // ssendUserStatusToChatRoom(socket, username, chatRoom, isOnline) {
-    //     io.to(chatRoom).emit(SocketEvents.user_status_update)
-    // }
+    sendUserOfflineToChatRoom(db, io, socket) {
+        UserStatusDao.getUserStatusForChatRoom(db, null, socket.id, null, (userStatus) => {
+            if (userStatus && userStatus.online && userStatus.chatRoom) {
+                instance.sendUserStatusToChatRoom(io, userStatus.username, userStatus.chatRoom, false)
+            }
+        }, (err) => {
+            console.error('sendUserOfflineToChatRoomError', err)
+        })
+    }
+
+    sendUserStatusToChatRoom(io, username, chatRoom, isOnline) {
+        console.log('Sending user status ' + isOnline + ' to chat room ' + chatRoom + ' for user ' + username)
+        io.to(chatRoom).emit(SocketEvents.user_status_update, { username: username, isOnline: isOnline })
+    }
 
     // Set user status for online/offline purposes
-    setUserStatus(db, socket, username, chatRoom, isOnline) {
+    setUserStatus(db, socket, username, chatRoom, isOnline, onSuccess, onError) {
         UserStatusDao.setUserStatus(db, username, socket.id, chatRoom, isOnline, (result) => {
             console.log('updated user status')
+            if (onSuccess) {
+                onSuccess(result)
+            }
         }, (err) => {
             console.error('setUserStatus Error', err)
+            if (onError) {
+                onError(err)
+            }
         })
     }
 
     // Called when joining a new chatroom, sends room chat history to client
     sendChatroomUpdate(io, socket, db, chatRoom) {
         ChatHistoryDao.getForChatRoomUpdate(db, chatRoom, (chatHistory) => {
-            io.to(socket.id).emit(SocketEvents.chatroom_update, {
-                'chatRoomName': chatRoom,
-                'messages': chatHistory
+            UserStatusDao.getUserStatusForChatRoom(db, null, null, chatRoom, (userStatuses) => {
+                io.to(socket.id).emit(SocketEvents.chatroom_update, {
+                    'chatRoomName': chatRoom,
+                    'messages': chatHistory,
+                    'statuses': userStatuses
+                })
+            }, (err) => {
+                console.error('sendChatroomUpdate UserStatusDao Error', err)
             })
         }, (err) => {
-            console.error('sendChatroomUpdate Error', err)
+            console.error('sendChatroomUpdate ChatHistoryDao Error', err)
         })
     }
 }

@@ -16,7 +16,7 @@ class UserStatusDao extends Dao {
                     onError(err)
                 }
 
-                const userStatusProps = { socketId: socketId, online: isOnline, chatRoomName: chatRoomName }
+                const userStatusProps = { socketId: socketId, isOnline: isOnline, chatRoomName: chatRoomName }
 
                 // Update query using username if online and socketId when offline since we only have socket obj from disconnection callback
                 if (isOnline) {
@@ -26,7 +26,7 @@ class UserStatusDao extends Dao {
                 }
             } else { // User status does not exist in chat room, have to create a record
                 console.log('creating')
-                _this.create(db, { 'username': username, 'socketId': socketId, 'chatRoomName': chatRoomName, 'online': isOnline }, (result) => {
+                _this.create(db, { 'username': username, 'socketId': socketId, 'chatRoomName': chatRoomName, 'isOnline': isOnline }, (result) => {
                     onSuccess(result)
                 }, (err) => {
                     onError(err)
