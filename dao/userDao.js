@@ -22,6 +22,7 @@ class UserDao extends Dao {
             })
     }
 
+    // Register a new user and encrypt password 
     static register(db, username, password, email, onSuccess, onError) {
         bcrypt.hash(password, saltRounds, (err, hash) => {
             if (err) {
@@ -36,6 +37,7 @@ class UserDao extends Dao {
         })
     }
 
+    // Retrieve a User record by username
     static getByUserName(db, username, onSuccess, onError) {
         const collection = this.getCollection(db)
         collection.find({ 'username': username })
@@ -58,16 +60,16 @@ class UserDao extends Dao {
             if (user) {
                 bcrypt.compare(password, user.password, (err, same) => {
                     if (same) {
-                        onSuccess({ loginSuccess: true })
+                        onSuccess({ success: true })
                     } else {
-                        onError({ loginSuccess: false, error: 'Incorrect username/password' })
+                        onError({ success: false, errorMessage: 'Incorrect username/password' })
                     }
                 })
             } else {
-                onError({ loginSuccess: false, error: 'Username does not exist' })
+                onError({ success: false, errorMessage: 'Username does not exist' })
             }
         }, (err) => {
-
+            console.error(err)
         })
     }
 

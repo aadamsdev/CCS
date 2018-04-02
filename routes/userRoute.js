@@ -29,7 +29,7 @@ module.exports = function (app, db) {
         }
     })
 
-    app.post('/user/login', (req, res) => {
+    app.post('/user/login', (req, res) => {        
         const body = req.body
         if (body && (!body.password || !body.username)) {
             res.status(400).send('Username and password are required for login.')

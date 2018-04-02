@@ -14,7 +14,7 @@ module.exports = function (app, db) {
             })
 
         } else {
-
+            res.status(400).send({ error: 'Chatroom name is a required query parameter.' })
         }
     })
 };

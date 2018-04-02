@@ -23,7 +23,7 @@ class ChatSocket {
 
             // Client location update
             socket.on(SocketEvents.location_update, (locationUpdate) => {
-                console.log(locationUpdate)
+                console.log('location update', locationUpdate)
 
                 // Check if client is in previously known geofence; for performance purposes
                 if (locationUpdate.lastKnownChatRoom
@@ -33,7 +33,7 @@ class ChatSocket {
                     const chatRoom = locationUpdate.lastKnownChatRoom
                     const username = locationUpdate.username
                     instance.sendLocationUpdate(db, io, username, socket, chatRoom)
-                } else { // Otherwise loop find the geofence containing user's location
+                } else { // Otherwise find the geofence containing user's location
                     const geofence = instance.geofenceManager.getGeofenceContainingPoint(locationUpdate)
                     if (geofence) {
                         const chatRoom = geofence.name
@@ -78,7 +78,7 @@ class ChatSocket {
             }
         })     
     }
-
+    
     sendUserOfflineToChatRoom(db, io, socket) {
         UserStatusDao.getUserStatusForChatRoom(db, null, socket.id, null, (userStatus) => {
             if (userStatus && userStatus.online && userStatus.chatRoom) {
